@@ -65,6 +65,23 @@ fun getProjectPostsTool(): Tool {
                                 "상위 업무 ID - 특정 업무의 하위 업무들만 조회 (선택사항)"
                             )
                         }
+                        putJsonObject("from_member_ids") {
+                            put("type", "array")
+                            putJsonObject("items") { put("type", "string") }
+                            put("description", "작성자 멤버 ID 목록 (선택사항)")
+                        }
+                        putJsonObject("from_email_address") {
+                            put("type", "string")
+                            put("description", "작성자 이메일 주소로 필터 (선택사항)")
+                        }
+                        putJsonObject("to_member_size") {
+                            put("type", "integer")
+                            put("description", "담당자 수 필터 (0: 담당자 미지정, 1: 단독 담당) (선택사항)")
+                        }
+                        putJsonObject("post_number") {
+                            put("type", "string")
+                            put("description", "업무 번호로 필터 (선택사항)")
+                        }
                         putJsonObject("post_workflow_classes") {
                             put("type", "array")
                             putJsonObject("items") { put("type", "string") }
@@ -72,6 +89,11 @@ fun getProjectPostsTool(): Tool {
                                 "description",
                                 "워크플로우 클래스 (backlog, registered, working, closed) (선택사항)"
                             )
+                        }
+                        putJsonObject("post_workflow_ids") {
+                            put("type", "array")
+                            putJsonObject("items") { put("type", "string") }
+                            put("description", "워크플로우 ID 목록으로 필터 (선택사항)")
                         }
                         putJsonObject("milestone_ids") {
                             put("type", "array")
@@ -81,6 +103,18 @@ fun getProjectPostsTool(): Tool {
                         putJsonObject("subjects") {
                             put("type", "string")
                             put("description", "업무 제목 검색어 (선택사항)")
+                        }
+                        putJsonObject("created_at") {
+                            put("type", "string")
+                            put("description", "생성시간 필터 (DATE_PATTERN, 예: 2024-01-01T00:00:00+09:00~2024-12-31T23:59:59+09:00) (선택사항)")
+                        }
+                        putJsonObject("updated_at") {
+                            put("type", "string")
+                            put("description", "업데이트 시간 필터 (DATE_PATTERN) (선택사항)")
+                        }
+                        putJsonObject("due_at") {
+                            put("type", "string")
+                            put("description", "마감시간 필터 (DATE_PATTERN) (선택사항)")
                         }
                         putJsonObject("order") {
                             put("type", "string")
@@ -119,6 +153,10 @@ fun getProjectPostsHandler(
                 val size = request.arguments["size"]?.jsonPrimitive?.content?.toIntOrNull() ?: 20
 
                 // 배열 파라미터 처리
+                val fromMemberIds =
+                    request.arguments["from_member_ids"]?.let { element ->
+                        JsonUtils.parseStringArray(element.toString())
+                    }
                 val toMemberIds =
                     request.arguments["to_member_ids"]?.let { element ->
                         JsonUtils.parseStringArray(element.toString())
@@ -135,14 +173,24 @@ fun getProjectPostsHandler(
                     request.arguments["post_workflow_classes"]?.let { element ->
                         JsonUtils.parseStringArray(element.toString())
                     }
+                val postWorkflowIds =
+                    request.arguments["post_workflow_ids"]?.let { element ->
+                        JsonUtils.parseStringArray(element.toString())
+                    }
                 val milestoneIds =
                     request.arguments["milestone_ids"]?.let { element ->
                         JsonUtils.parseStringArray(element.toString())
                     }
 
                 // 단일 값 파라미터 처리
+                val fromEmailAddress = request.arguments["from_email_address"]?.jsonPrimitive?.content
+                val toMemberSize = request.arguments["to_member_size"]?.jsonPrimitive?.content?.toIntOrNull()
                 val parentPostId = request.arguments["parent_post_id"]?.jsonPrimitive?.content
+                val postNumber = request.arguments["post_number"]?.jsonPrimitive?.content
                 val subjects = request.arguments["subjects"]?.jsonPrimitive?.content
+                val createdAt = request.arguments["created_at"]?.jsonPrimitive?.content
+                val updatedAt = request.arguments["updated_at"]?.jsonPrimitive?.content
+                val dueAt = request.arguments["due_at"]?.jsonPrimitive?.content
                 val order = request.arguments["order"]?.jsonPrimitive?.content
 
                 val response =
@@ -150,13 +198,21 @@ fun getProjectPostsHandler(
                         projectId = projectId,
                         page = page,
                         size = size,
+                        fromMemberIds = fromMemberIds,
+                        fromEmailAddress = fromEmailAddress,
                         toMemberIds = toMemberIds,
+                        toMemberSize = toMemberSize,
                         ccMemberIds = ccMemberIds,
                         tagIds = tagIds,
                         parentPostId = parentPostId,
+                        postNumber = postNumber,
                         postWorkflowClasses = postWorkflowClasses,
+                        postWorkflowIds = postWorkflowIds,
                         milestoneIds = milestoneIds,
                         subjects = subjects,
+                        createdAt = createdAt,
+                        updatedAt = updatedAt,
+                        dueAt = dueAt,
                         order = order
                     )
 

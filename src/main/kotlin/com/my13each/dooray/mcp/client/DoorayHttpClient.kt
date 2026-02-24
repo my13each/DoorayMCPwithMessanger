@@ -285,7 +285,9 @@ class DoorayHttpClient(private val baseUrl: String, private val doorayApiKey: St
             page: Int?,
             size: Int?,
             fromMemberIds: List<String>?,
+            fromEmailAddress: String?,
             toMemberIds: List<String>?,
+            toMemberSize: Int?,
             ccMemberIds: List<String>?,
             tagIds: List<String>?,
             parentPostId: String?,
@@ -309,9 +311,11 @@ class DoorayHttpClient(private val baseUrl: String, private val doorayApiKey: St
                 fromMemberIds?.let {
                     if (it.isNotEmpty()) parameter("fromMemberIds", it.joinToString(","))
                 }
+                fromEmailAddress?.let { parameter("fromEmailAddress", it) }
                 toMemberIds?.let {
                     if (it.isNotEmpty()) parameter("toMemberIds", it.joinToString(","))
                 }
+                toMemberSize?.let { parameter("toMemberSize", it) }
                 ccMemberIds?.let {
                     if (it.isNotEmpty()) parameter("ccMemberIds", it.joinToString(","))
                 }
